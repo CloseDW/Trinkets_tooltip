@@ -27,7 +27,7 @@ Portions of this project's build scaffolding originate from the Fabric example m
 
 The Curios-style interface artwork under
 src/main/resources/assets/trinkets-tooltip/textures/gui/ (inventory_revamp.png and
-inventory.png) is taken from Curios (https://github.com/TheIllusiveC4/Curios) by C4
+inventory.png) is derived from Curios (https://github.com/TheIllusiveC4/Curios) by C4
 (TheIllusiveC4), which is also licensed under the GNU Lesser General Public License,
 version 3.
 
