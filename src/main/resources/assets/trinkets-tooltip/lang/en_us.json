@@ -1,0 +1,25 @@
+{
+  "jei.trinkets-tooltip.trinket_slot": "Trinket Slot",
+  "jei.trinkets-tooltip.trinket_slot.named": "%s (%s)",
+  "jei.trinkets-tooltip.trinket_slot.chunked": "%s (%s) %s/%s",
+
+  "config.trinkets-tooltip.category.panel": "Panel",
+  "config.trinkets-tooltip.category.general": "General",
+
+  "config.trinkets-tooltip.pagination": "Pagination",
+  "config.trinkets-tooltip.pagination.tooltip": "Split the panel into pages with previous/next arrows, like Curios. Turn off to lay every slot out at once.",
+
+  "config.trinkets-tooltip.min_width": "Min Width",
+  "config.trinkets-tooltip.min_width.tooltip": "Columns per page. Only used when pagination is enabled.",
+
+  "config.trinkets-tooltip.max_height": "Max Height",
+  "config.trinkets-tooltip.max_height.tooltip": "Rows per page.",
+
+  "config.trinkets-tooltip.scrolling_outside_boundary": "Scrolling Outside Boundary",
+  "config.trinkets-tooltip.scrolling_outside_boundary.tooltip": "Turning pages with the mouse wheel works anywhere in the inventory, not just over the panel.",
+
+  "config.trinkets-tooltip.jei_slot_lookup": "JEI Slot Lookup",
+  "config.trinkets-tooltip.jei_slot_lookup.tooltip": "Left clicking an empty trinket slot opens JEI listing every item that can be equipped there.",
+
+  "config.trinkets-tooltip.range": "Must be between %s and %s"
+}

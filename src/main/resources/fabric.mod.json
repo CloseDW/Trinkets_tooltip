@@ -1,0 +1,58 @@
+{
+	"schemaVersion": 1,
+	"id": "trinkets-tooltip",
+	"version": "${version}",
+	"name": "Trinkets Tooltip",
+	"description": "Gives Trinkets the Curios look and feel: a Curios-style trinket panel with pagination and a show/hide toggle, configurable through Configured.",
+	"authors": [
+		"CloseDW"
+	],
+	"contact": {
+		"homepage": "https://github.com/CloseDW/Trinkets_tooltip",
+		"sources": "https://github.com/CloseDW/Trinkets_tooltip",
+		"issues": "https://github.com/CloseDW/Trinkets_tooltip/issues"
+	},
+	"license": "LGPL-3.0",
+	"icon": "assets/trinkets-tooltip/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
+			"closedw.tt.TrinketsTooltip"
+		],
+		"client": [
+			"closedw.tt.client.TrinketsTooltipClient"
+		],
+		"jei_mod_plugin": [
+			"closedw.tt.client.jei.TrinketsTooltipJeiPlugin"
+		]
+	},
+	"custom": {
+		"configured": {
+			"providers": [
+				"closedw.tt.client.theme.config.TrinketsTooltipConfigProvider"
+			]
+		}
+	},
+	"mixins": [
+		"trinkets-tooltip.mixins.json",
+		{
+			"config": "trinkets-tooltip.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"accessWidener": "trinkets-tooltip.accesswidener",
+	"depends": {
+		"fabricloader": ">=0.15.2",
+		"minecraft": "~1.20.1",
+		"java": ">=17",
+		"fabric-api": "*",
+		"trinkets": ">=${trinkets_version}"
+	},
+	"suggests": {
+		"configured": "*",
+		"jei": "*"
+	},
+	"conflicts": {
+		"carpet-shadow": "*"
+	}
+}

@@ -1,0 +1,34 @@
+Trinkets Tooltip
+Copyright (C) 2026 closedw and contributors
+
+This mod is a derivative work of "Trinkets Curios Theme" by jptrzy
+(https://github.com/jptrzy/trinkets-curios-theme-mod), which is licensed under the
+GNU Lesser General Public License, version 3.
+
+Accordingly, this program is free software: you can redistribute it and/or modify it
+under the terms of the GNU Lesser General Public License as published by the Free
+Software Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/lgpl-3.0.html>.
+
+The full text of the GNU Lesser General Public License version 3 is available at:
+https://www.gnu.org/licenses/lgpl-3.0.txt
+
+---
+
+Portions of this project's build scaffolding originate from the Fabric example mod
+(https://github.com/FabricMC/fabric-example-mod), which is released under CC0-1.0.
+
+The Curios-style interface artwork under
+src/main/resources/assets/trinkets-tooltip/textures/gui/ (inventory_revamp.png and
+inventory.png) is taken from Curios (https://github.com/TheIllusiveC4/Curios) by C4
+(TheIllusiveC4), which is also licensed under the GNU Lesser General Public License,
+version 3.
+
+Trinket slot artwork is not bundled here; it is loaded from Trinkets' own datapack icons.

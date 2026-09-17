@@ -1,0 +1,9 @@
+accessWidener v1 named
+
+# Trinket slots are repositioned onto the Curios-style panel, so Slot.x/Slot.y
+# must become writable (they are `public final` in 1.20.1).
+mutable field net/minecraft/screen/slot/Slot x I
+mutable field net/minecraft/screen/slot/Slot y I
+
+# dev.emi.trinkets.CreativeTrinketSlot extends this package-private inner class.
+accessible class net/minecraft/client/gui/screen/ingame/CreativeInventoryScreen$CreativeSlot

@@ -1,0 +1,20 @@
+{
+	"required": true,
+	"package": "closedw.tt.client.mixin",
+	"compatibilityLevel": "JAVA_17",
+	"client": [
+		"CreativeTrinketSlotMixin",
+		"HandledScreenMixin",
+		"InventoryScreenMixin",
+		"ScreenHandlerInvoker",
+		"ScreenHandlerMixin",
+		"SurvivalTrinketSlotMixin",
+		"TrinketScreenManagerMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}

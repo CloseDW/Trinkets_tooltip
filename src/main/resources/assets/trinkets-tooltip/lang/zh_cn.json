@@ -1,0 +1,25 @@
+{
+  "jei.trinkets-tooltip.trinket_slot": "饰品槽",
+  "jei.trinkets-tooltip.trinket_slot.named": "%s（%s）",
+  "jei.trinkets-tooltip.trinket_slot.chunked": "%s（%s）%s/%s",
+
+  "config.trinkets-tooltip.category.panel": "面板",
+  "config.trinkets-tooltip.category.general": "通用",
+
+  "config.trinkets-tooltip.pagination": "分页",
+  "config.trinkets-tooltip.pagination.tooltip": "像 Curios 那样用上/下一页箭头分页显示；关闭则一次性铺开所有槽位。",
+
+  "config.trinkets-tooltip.min_width": "面板最小列数",
+  "config.trinkets-tooltip.min_width.tooltip": "每页的列数，仅在启用分页时生效。",
+
+  "config.trinkets-tooltip.max_height": "面板最大行数",
+  "config.trinkets-tooltip.max_height.tooltip": "每页的行数。",
+
+  "config.trinkets-tooltip.scrolling_outside_boundary": "允许在面板外滚动",
+  "config.trinkets-tooltip.scrolling_outside_boundary.tooltip": "在背包内任意位置滚轮都能翻页，而不只是在面板上。",
+
+  "config.trinkets-tooltip.jei_slot_lookup": "JEI 槽位查询",
+  "config.trinkets-tooltip.jei_slot_lookup.tooltip": "左键点击空的饰品槽会打开 JEI，列出所有能装进该槽位的物品。",
+
+  "config.trinkets-tooltip.range": "取值必须在 %s 到 %s 之间"
+}
