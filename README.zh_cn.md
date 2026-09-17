@@ -10,7 +10,6 @@
 * 有着 Curios 类似风格的面板。
 * 左键点击**空的**饰品槽（光标上没有物品）会打开 JEI，列出所有能装备到该槽位的物品。 在 JEI 里查询物品，也会显示它能放进哪些饰品槽。
 
-
 ## 前置
 
 * [Fabric API](https://modrinth.com/mod/P7dR8mSH)
