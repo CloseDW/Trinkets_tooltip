@@ -8,7 +8,7 @@ Gives [Trinkets](https://modrinth.com/mod/5aaWibi9) the look and feel of
 ## What it does
 
 * A panel in the Curios style.
-* Left clicking an **empty** trinket slot (with nothing on the cursor) opens JEI, listing every
+* Left clicking an **empty** trinket slot opens JEI, listing every
   item that can be equipped in that slot. Looking an item up in JEI also shows which trinket
   slots accept it.
 
