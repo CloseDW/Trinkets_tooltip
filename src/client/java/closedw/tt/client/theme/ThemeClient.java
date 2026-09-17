@@ -214,7 +214,7 @@ public final class ThemeClient {
 	private static void drawPageButtons(DrawContext context, TCTPlayerScreenHandlerInterface tcp, int x, int y) {
 		int page = tcp.getScrollIndex();
 		int pages = getPageCount(getTrinketSlotCount(tcp));
-		int[] buttons = getPageButtons(tcp);
+		int[] buttons = getPageButtons();
 
 		int previousY = page > 0 ? REVAMP_ARROW_V_ENABLED : REVAMP_ARROW_V_DISABLED;
 		int nextY = page + 1 < pages ? REVAMP_ARROW_V_ENABLED : REVAMP_ARROW_V_DISABLED;
@@ -397,7 +397,7 @@ public final class ThemeClient {
 	 * 翻页箭头的几何位置，使用相对 GUI 坐标：
 	 * {@code [上一页 x, 下一页 x, y]}。
 	 */
-	public static int[] getPageButtons(TCTPlayerScreenHandlerInterface tcp) {
+	public static int[] getPageButtons() {
 		return new int[] { -28, -17, 0 };
 	}
 
@@ -406,7 +406,7 @@ public final class ThemeClient {
 			return false;
 		}
 
-		int[] buttons = getPageButtons(tcp);
+		int[] buttons = getPageButtons();
 		double top = y + buttons[2];
 		double bottom = top + PAGE_BUTTON_HEIGHT;
 		if (mouseY < top || mouseY >= bottom) {
@@ -419,8 +419,8 @@ public final class ThemeClient {
 	}
 
 	/** 点击命中的是“下一页”箭头而不是“上一页”箭头时返回 true。 */
-	public static boolean isClickInNextPage(TCTPlayerScreenHandlerInterface tcp, double mouseX, int x) {
-		int[] buttons = getPageButtons(tcp);
+	public static boolean isClickInNextPage(double mouseX, int x) {
+		int[] buttons = getPageButtons();
 		return mouseX >= x + buttons[1];
 	}
 

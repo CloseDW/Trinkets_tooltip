@@ -107,7 +107,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 		}
 
 		if (ThemeClient.isClickInPageButtons(tcp, mouseX, mouseY, this.x, this.y)) {
-			boolean next = ThemeClient.isClickInNextPage(tcp, mouseX, this.x);
+			boolean next = ThemeClient.isClickInNextPage(mouseX, this.x);
 			ThemeClient.changePage(this.handler.slots, tcp, next ? 1 : -1);
 			cir.setReturnValue(true);
 			return;

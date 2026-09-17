@@ -23,7 +23,6 @@ import java.util.function.Consumer;
 public class TrinketsTooltipConfig implements IModConfig {
 
 	public static final String MOD_ID = TrinketsTooltip.MOD_ID;
-	public static final String FILE_NAME = "trinkets-tooltip.properties";
 
 	/** 界面分组：分组名 -&gt; 选项键列表，按显示顺序排列。 */
 	public static final Map<String, List<String>> CATEGORIES = new LinkedHashMap<>();
@@ -121,7 +120,8 @@ public class TrinketsTooltipConfig implements IModConfig {
 
 	@Override
 	public String getFileName() {
-		return FILE_NAME;
+		// 文件名由 ModConfig 独家持有，这里不再另存一份。
+		return ModConfig.FILE_NAME;
 	}
 
 	@Override

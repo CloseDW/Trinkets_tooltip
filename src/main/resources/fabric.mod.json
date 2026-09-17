@@ -34,7 +34,6 @@
 		}
 	},
 	"mixins": [
-		"trinkets-tooltip.mixins.json",
 		{
 			"config": "trinkets-tooltip.client.mixins.json",
 			"environment": "client"

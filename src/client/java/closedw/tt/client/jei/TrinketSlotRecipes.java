@@ -48,17 +48,36 @@ public final class TrinketSlotRecipes {
 	 */
 	public record TrinketSlotRecipe(String group, String name, Text title, int chunk, int chunkCount,
 									List<ItemStack> items) {
-
-		public String slotKey() {
-			return group + "/" + name;
-		}
 	}
 
-	/** 清空所有缓存。玩家进入或离开世界时调用。 */
+	/** 建立缓存时客户端已知的槽位集合，用来判断缓存是否还对得上当前的槽位。 */
+	private static List<String> cachedSlotKeys = List.of();
+
+	/** 清空所有缓存，只应由 {@link #validateCache(PlayerEntity)} 和 JEI 的启停调用。 */
 	public static void invalidate() {
 		BY_SLOT.clear();
 		BY_ITEM.clear();
 		allRecipes = List.of();
+		cachedSlotKeys = List.of();
+	}
+
+	/**
+	 * 槽位集合和建立缓存时不一致就整体作废。
+	 * <p>
+	 * 槽位由数据包驱动，换服务器、换存档或数据包重载之后，槽位集合可能完全不同，
+	 * 而客户端不会通知 JEI 插件。以前只在 JEI 启停时清一次缓存，结果就是切服之后
+	 * 查询到的仍是上一个世界的槽位列表；现在每次读缓存前都先比对一次当前槽位集合。
+	 */
+	private static void validateCache(PlayerEntity player) {
+		List<String> keys = slotTypes(player).stream()
+				.map(type -> type.getGroup() + "/" + type.getName())
+				.sorted()
+				.toList();
+
+		if (!keys.equals(cachedSlotKeys)) {
+			invalidate();
+			cachedSlotKeys = keys;
+		}
 	}
 
 	/** 客户端当前为该玩家所知道的所有槽位类型。 */
@@ -104,8 +123,10 @@ public final class TrinketSlotRecipes {
 		return result;
 	}
 
-	/** 某个槽位的所有分块，缓存到下一次 {@link #invalidate()} 为止。 */
+	/** 某个槽位的所有分块，缓存到槽位集合发生变化为止。 */
 	public static List<TrinketSlotRecipe> recipesFor(SlotType type, PlayerEntity player) {
+		validateCache(player);
+
 		String key = type.getGroup() + "/" + type.getName();
 		List<TrinketSlotRecipe> cached = BY_SLOT.get(key);
 
@@ -139,6 +160,8 @@ public final class TrinketSlotRecipes {
 
 	/** 所有槽位的所有分块，带缓存。JEI 浏览时使用。 */
 	public static List<TrinketSlotRecipe> all(PlayerEntity player) {
+		validateCache(player);
+
 		if (!allRecipes.isEmpty()) {
 			return allRecipes;
 		}
@@ -162,6 +185,8 @@ public final class TrinketSlotRecipes {
 	 * 接受这件物品的每个槽位的全部分块，带缓存。
 	 */
 	public static List<TrinketSlotRecipe> recipesForItem(PlayerEntity player, Item item) {
+		validateCache(player);
+
 		List<TrinketSlotRecipe> cached = BY_ITEM.get(item);
 
 		if (cached != null) {
