@@ -3,7 +3,7 @@
 	"id": "trinkets-tooltip",
 	"version": "${version}",
 	"name": "Trinkets Tooltip",
-	"description": "Gives Trinkets the Curios look and feel: a Curios-style trinket panel with pagination and a show/hide toggle, configurable through Configured.",
+	"description": "Gives Trinkets the Curios look and feel: a Curios-style trinket panel with pagination and a show/hide toggle.",
 	"authors": [
 		"CloseDW"
 	],
