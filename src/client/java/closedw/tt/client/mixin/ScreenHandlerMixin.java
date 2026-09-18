@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 public abstract class ScreenHandlerMixin implements TCTPlayerScreenHandlerInterface {
 
 	@Unique
-	private boolean trinketsTooltip$trinketsShow = true;
+	private boolean trinketsTooltip$trinketsShow = false;
 
 	@Unique
 	private int trinketsTooltip$scrollIndex = 0;

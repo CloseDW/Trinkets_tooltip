@@ -80,7 +80,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 			return;
 		}
 
-		ThemeClient.updateSlots(this.handler.slots, trinketsTooltip$getTcp());
+		ThemeClient.updateSlots(this.handler.slots, trinketsTooltip$getTcp(), !trinketsTooltip$isRecipeBookOpen());
 	}
 
 	@Inject(method = "render", at = @At(value = "INVOKE", shift = At.Shift.AFTER,
@@ -113,7 +113,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 			return;
 		}
 
-		// 左键点击一个空的饰品槽、且光标上没有物品时，原版什么都不会做，
+		// 左键点击一个空的饰品槽、且光标上没有物品时，原版什么都不会做
 		if (!this.handler.getCursorStack().isEmpty()) {
 			return;
 		}

@@ -254,10 +254,22 @@ public final class ThemeClient {
 	}
 
 	/**
+	 * 面板隐藏时饰品槽被挪到的屏幕外坐标。
+	 */
+	private static final int HIDDEN_SLOT_COORD = -10000;
+
+	/**
 	 * 移动并启用/禁用饰品槽，让只有当前页会被画出来。
 	 * 每帧都要调用，因为饰品数据一同步 Trinkets 就会重新添加它的槽位。
 	 */
 	public static void updateSlots(DefaultedList<Slot> slots, TCTPlayerScreenHandlerInterface tcp) {
+		updateSlots(slots, tcp, true);
+	}
+
+	/**
+	 * @param panelVisible 面板（在翻页/显示意义上）当前是否可见。面板或整个饰品界面隐藏时传 {@code false}，饰品槽就会被移出屏幕。
+	 */
+	public static void updateSlots(DefaultedList<Slot> slots, TCTPlayerScreenHandlerInterface tcp, boolean panelVisible) {
 		if (!(tcp instanceof TrinketPlayerScreenHandler handler)) {
 			return;
 		}
@@ -279,10 +291,13 @@ public final class ThemeClient {
 				continue;
 			}
 
-			boolean visible = isSlotVisible(i, tcp.getScrollIndex());
+			boolean visible = panelVisible && tcp.getTrinketsShow()
+					&& isSlotVisible(i, tcp.getScrollIndex());
 			themed.setEnabled(visible);
 
 			if (!visible) {
+				slot.x = HIDDEN_SLOT_COORD;
+				slot.y = HIDDEN_SLOT_COORD;
 				continue;
 			}
 
