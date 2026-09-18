@@ -57,7 +57,7 @@ public class TrinketSlotCategory implements IRecipeCategory<TrinketSlotRecipes.T
 	}
 
 	/**
-	 * 标签页图标延迟到第一次需要时才解析，取自第一件能放进任意饰品槽的物品，
+	 * 标签页图标延迟到第一次需要时才解析，取自第一件能放进任意饰品槽的物品
 	 */
 	@Override
 	@Nullable

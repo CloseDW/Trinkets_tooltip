@@ -63,10 +63,6 @@ public final class TrinketSlotRecipes {
 
 	/**
 	 * 槽位集合和建立缓存时不一致就整体作废。
-	 * <p>
-	 * 槽位由数据包驱动，换服务器、换存档或数据包重载之后，槽位集合可能完全不同，
-	 * 而客户端不会通知 JEI 插件。以前只在 JEI 启停时清一次缓存，结果就是切服之后
-	 * 查询到的仍是上一个世界的槽位列表；现在每次读缓存前都先比对一次当前槽位集合。
 	 */
 	private static void validateCache(PlayerEntity player) {
 		List<String> keys = slotTypes(player).stream()

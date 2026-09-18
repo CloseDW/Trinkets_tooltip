@@ -114,7 +114,6 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 		}
 
 		// 左键点击一个空的饰品槽、且光标上没有物品时，原版什么都不会做，
-		// 所以这次点击可以放心交给 JEI 查询。而手上拿着物品时的点击必须留给原版，否则就没法把物品装备上去了。
 		if (!this.handler.getCursorStack().isEmpty()) {
 			return;
 		}

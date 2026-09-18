@@ -78,7 +78,6 @@ public class TrinketsTooltipJeiPlugin implements IModPlugin {
 	/**
 	 * 动态提供配方。槽位由数据包驱动，只有玩家进入世界之后才会同步过来，
 	 * 而那已经是 JEI 让插件注册之后很久了，所以这里必须用 manager 插件，而不是静态注册配方。
-	 * 物品是配方的输入，这样在物品上按 JEI 的 “uses”（默认 {@code U}）查询时，回答的就是“这件物品能放进哪些饰品槽”。
 	 */
 	private static class SlotPlugins implements ISimpleRecipeManagerPlugin<TrinketSlotRecipes.TrinketSlotRecipe> {
 
