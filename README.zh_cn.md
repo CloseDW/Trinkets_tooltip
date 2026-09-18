@@ -32,11 +32,6 @@
 
 ## 鸣谢与许可
 
-* 面板布局、贴图和行为派生自 jptrzy 的
-  [trinkets-curios-theme](https://github.com/jptrzy/trinkets-curios-theme-mod)，
-  采用 **LGPL-3.0** 许可。
-* Curios 的界面贴图（`inventory_revamp.png` 和 `inventory.png`）派生自
-  **C4 (TheIllusiveC4)** 的 [Curios](https://github.com/TheIllusiveC4/Curios)，
-  采用 **LGPL-3.0** 许可。
+* 感谢 jptrzy 的[trinkets-curios-theme](https://github.com/jptrzy/trinkets-curios-theme-mod)和**C4 (TheIllusiveC4)** 的 [Curios](https://github.com/TheIllusiveC4/Curios)提供的灵感， 采用 **LGPL-3.0** 许可。
 
 由于本作品派生自 LGPL-3.0 项目，整个模组以 **LGPL-3.0** 分发。见 [LICENSE](LICENSE)。

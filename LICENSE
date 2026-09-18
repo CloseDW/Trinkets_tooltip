@@ -25,9 +25,8 @@ https://www.gnu.org/licenses/lgpl-3.0.txt
 Portions of this project's build scaffolding originate from the Fabric example mod
 (https://github.com/FabricMC/fabric-example-mod), which is released under CC0-1.0.
 
-The Curios-style interface artwork under
-src/main/resources/assets/trinkets-tooltip/textures/gui/ (inventory_revamp.png and
-inventory.png) is derived from Curios (https://github.com/TheIllusiveC4/Curios) by C4
+The Curios-style interface artwork is derived from Curios
+(https://github.com/TheIllusiveC4/Curios) by C4
 (TheIllusiveC4), which is also licensed under the GNU Lesser General Public License,
 version 3.
 
