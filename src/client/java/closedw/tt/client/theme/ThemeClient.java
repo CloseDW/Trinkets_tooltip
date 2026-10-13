@@ -119,16 +119,15 @@ public final class ThemeClient {
 	}
 
 	/**
-	 * 面板的列数。
+	 * 面板的列数。分页现在是固定行为，一页就是 {@code min_width} 列，
+	 * 所以列数直接等于 {@code min_width}（从前可以用配置关掉分页把槽位一次铺开，那个开关已经取消）。
 	 */
 	public static int getPanelColumns(int length) {
 		if (length < 1) {
 			return 0;
 		}
-		if (ModConfig.pagination) {
-			return ModConfig.min_width;
-		}
-		return (int) Math.ceil((float) length / ModConfig.max_height);
+
+		return ModConfig.min_width;
 	}
 
 	public static void drawBackground(DrawContext context, int x, int y, TCTPlayerScreenHandlerInterface tcp) {
@@ -233,10 +232,14 @@ public final class ThemeClient {
 		return ModConfig.min_width * ModConfig.max_height;
 	}
 
+	/**
+	 * 总页数。分页固定开启，所以超出这一页的槽位一律靠箭头/滚轮翻。
+	 */
 	public static int getPageCount(int length) {
-		if (length < 1 || !ModConfig.pagination) {
+		if (length < 1) {
 			return 1;
 		}
+
 		return MathHelper.ceil((float) length / getSlotsPerPage());
 	}
 
@@ -245,10 +248,6 @@ public final class ThemeClient {
 	 * 布局和悬停检测共用这个方法，所以两者永远不会对不上。
 	 */
 	public static boolean isSlotVisible(int i, int page) {
-		if (!ModConfig.pagination) {
-			return true;
-		}
-
 		int first = page * getSlotsPerPage();
 		return i >= first && i < first + getSlotsPerPage();
 	}
@@ -301,16 +300,9 @@ public final class ThemeClient {
 				continue;
 			}
 
-			int column;
-			int row;
-			if (ModConfig.pagination) {
-				int visibleIndex = i - first;
-				column = visibleIndex % Math.max(1, columns);
-				row = visibleIndex / Math.max(1, columns);
-			} else {
-				column = i / ModConfig.max_height;
-				row = i % ModConfig.max_height;
-			}
+			int visibleIndex = i - first;
+			int column = visibleIndex % Math.max(1, columns);
+			int row = visibleIndex / Math.max(1, columns);
 
 			slot.x = getSlotX(column, Math.max(1, columns));
 			slot.y = getSlotY(row, paged);
@@ -392,17 +384,18 @@ public final class ThemeClient {
 	 * 像 Curios 那样翻到另一页，然后重新排布可见的槽位。
 	 */
 	public static void changePage(DefaultedList<Slot> slots, TCTPlayerScreenHandlerInterface tcp, int delta) {
-		if (ModConfig.pagination) {
-			int pages = getPageCount(getTrinketSlotCount(tcp));
-			int page = MathHelper.clamp(tcp.getScrollIndex() + delta, 0, Math.max(0, pages - 1));
-			tcp.setScrollIndex(page);
-		}
+		int pages = getPageCount(getTrinketSlotCount(tcp));
+		int page = MathHelper.clamp(tcp.getScrollIndex() + delta, 0, Math.max(0, pages - 1));
+		tcp.setScrollIndex(page);
 
 		updateSlots(slots, tcp);
 	}
 
+	/**
+	 * 面板是否显示页码条/翻页箭头，也就是确实不止一页的时候。
+	 */
 	public static boolean isPaginationVisible(int length) {
-		return ModConfig.pagination && getPageCount(length) > 1;
+		return getPageCount(length) > 1;
 	}
 
 	public static final int PAGE_BUTTON_WIDTH = 11;
@@ -411,9 +404,13 @@ public final class ThemeClient {
 	/**
 	 * 翻页箭头的几何位置，使用相对 GUI 坐标：
 	 * {@code [上一页 x, 下一页 x, y]}。
+	 *
+	 * <p>纵向留 2 像素：原来是贴着面板顶边画的 0，箭头最上面一两行会顶在面板顶框上，看着像被压住。
+	 * Curios 自己的 PageButton 也是放在 GUI 顶部往下 2 像素（{@code getGuiTop() + 2}），正好对上。
+	 * 绘制和点击判定共用本方法，所以改这里两边一起动，不会错位。
 	 */
 	public static int[] getPageButtons() {
-		return new int[] { -28, -17, 0 };
+		return new int[] { -28, -17, 2 };
 	}
 
 	public static boolean isClickInPageButtons(TCTPlayerScreenHandlerInterface tcp, double mouseX, double mouseY, int x, int y) {

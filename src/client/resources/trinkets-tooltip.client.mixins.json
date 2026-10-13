@@ -9,6 +9,7 @@
 		"ScreenHandlerInvoker",
 		"ScreenHandlerMixin",
 		"SurvivalTrinketSlotMixin",
+		"TrinketFeatureRendererMixin",
 		"TrinketScreenManagerMixin"
 	],
 	"injectors": {

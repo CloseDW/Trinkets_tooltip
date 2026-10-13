@@ -11,6 +11,7 @@ Gives [Trinkets](https://modrinth.com/mod/5aaWibi9) the look and feel of
 * Left clicking an **empty** trinket slot opens JEI, listing every
   item that can be equipped in that slot. Looking an item up in JEI also shows which trinket
   slots accept it.
+* Every trinket slot has the Curios **rendering toggle** in its top right corner. 
 
 ## Requirements
 
@@ -26,11 +27,11 @@ Gives [Trinkets](https://modrinth.com/mod/5aaWibi9) the look and feel of
 
 | Option | Default | Range | Effect |
 |---|---|---|---|
-| `pagination` | `true` | — | Split the panel into pages with previous/next arrows, like Curios. Off lays every slot out at once. |
-| `min_width` | `1` | 1–4 | Columns per page (only used while pagination is on). |
+| `min_width` | `1` | 1–4 | Columns per page. |
 | `max_height` | `7` | 2–7 | Rows per page. |
 | `scrolling_outside_boundary` | `false` | — | Let the mouse wheel turn pages anywhere in the inventory, not just over the panel. |
 | `jei_slot_lookup` | `true` | — | Left clicking an empty trinket slot opens JEI listing every item that can be equipped there. |
+| `render_disabled_slots` | *(empty)* | — | Trinket slots whose rendering is turned off, written by the panel's render toggle. |
 
 ## Credits and license
 

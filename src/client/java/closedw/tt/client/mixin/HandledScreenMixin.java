@@ -1,10 +1,11 @@
 package closedw.tt.client.mixin;
 
 import closedw.tt.client.theme.ThemeClient;
-import closedw.tt.client.theme.config.ModConfig;
+import closedw.tt.client.theme.TrinketRenderToggle;
 import closedw.tt.client.theme.interfaces.TCTPlayerScreenHandlerInterface;
 import dev.emi.trinkets.TrinketSlot;
 import dev.emi.trinkets.api.SlotType;
+import dev.emi.trinkets.api.TrinketInventory;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
@@ -14,6 +15,7 @@ import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -53,6 +55,16 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 	@Unique
 	private TCTPlayerScreenHandlerInterface trinketsTooltip$getTcp() {
 		return (TCTPlayerScreenHandlerInterface) this.handler;
+	}
+
+	/**
+	 * 鼠标正停在某个饰品槽的渲染开关图标上时返回那个槽位，否则返回 {@code null}。
+	 */
+	@Unique
+	@Nullable
+	private Slot trinketsTooltip$getHoveredRenderToggle(double mouseX, double mouseY) {
+		return TrinketRenderToggle.getHoveredIcon(this.handler.slots, trinketsTooltip$getTcp(), mouseX, mouseY,
+				this.x, this.y);
 	}
 
 	// 注入点
@@ -106,6 +118,15 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 			return;
 		}
 
+		// Curios 的渲染开关是一枚独立按钮，比槽位本身优先拿到点击；这里也一样，
+		// 手上拿着物品时也能点，点了之后这次点击不再交给槽位处理。
+		Slot toggle = trinketsTooltip$getHoveredRenderToggle(mouseX, mouseY);
+		if (toggle != null) {
+			TrinketRenderToggle.toggle(toggle);
+			cir.setReturnValue(true);
+			return;
+		}
+
 		if (ThemeClient.isClickInPageButtons(tcp, mouseX, mouseY, this.x, this.y)) {
 			boolean next = ThemeClient.isClickInNextPage(mouseX, this.x);
 			ThemeClient.changePage(this.handler.slots, tcp, next ? 1 : -1);
@@ -141,6 +162,48 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 	}
 
 	/**
+	 * 画饰品槽右上角那枚「启用饰品渲染」开关，做法照 Curios 的 RenderButton
+	 * （具体位置由 {@link TrinketRenderToggle} 里的偏移常量决定，比 Curios 再靠左 2 像素，
+	 * 免得被右边相邻的槽位盖住）。
+	 *
+	 * <p>挂在 {@code drawSlot} 的 TAIL 上，是想让图标盖在槽位里的物品图标之上 ——
+	 * Curios 也是在画完槽位之后才把这些开关覆盖上去的，而原版画槽位时已经关掉了深度测试
+	 * （{@code HandledScreen.render} 里的 {@code RenderSystem.disableDepthTest()}），
+	 * 所以后画的图标就在上层。
+	 *
+	 * <p>注意坐标系：{@code HandledScreen.render} 在开始循环画槽位之前，已经把矩阵平移到了
+	 * 界面左上角，所以 {@code drawSlot} 里一律用槽位的 GUI 相对坐标，图标位置也一样
+	 * （{@link TrinketRenderToggle#drawIcon} 里不再加 this.x/this.y）。
+	 */
+	@Inject(method = "drawSlot", at = @At("TAIL"))
+	private void trinketsTooltip$drawRenderToggle(DrawContext context, Slot slot, CallbackInfo ci) {
+		if (!trinketsTooltip$correct || !(slot.inventory instanceof TrinketInventory)) {
+			return;
+		}
+
+		TrinketRenderToggle.drawIcon(context, slot);
+	}
+
+	/**
+	 * 和 Curios 一样：鼠标停在渲染开关上时，这一格不算「悬停在槽位上」。
+	 * 这样物品提示框、槽位高亮和空槽位的槽位名提示都会让位给开关自己的提示
+	 * （见 {@link #trinketsTooltip$drawSlotName}）。
+	 *
+	 * <p>原版 {@code HandledScreen.isPointOverSlot} 是私有方法，直接把 HEAD 钩进去即可；
+	 * {@code InventoryScreen} 里对 {@code isPointWithinBounds} 的覆写不受影响。
+	 */
+	@Inject(method = "isPointOverSlot", at = @At("HEAD"), cancellable = true)
+	private void trinketsTooltip$isPointOverSlot(Slot slot, double pointX, double pointY, CallbackInfoReturnable<Boolean> cir) {
+		if (!trinketsTooltip$correct || !slot.isEnabled() || !(slot.inventory instanceof TrinketInventory)) {
+			return;
+		}
+
+		if (TrinketRenderToggle.isMouseOverIcon(slot, pointX, pointY, this.x, this.y)) {
+			cir.setReturnValue(false);
+		}
+	}
+
+	/**
 	 * 当光标下的饰品槽为空时显示它的名字，这也是 Curios 的做法：
 	 * 告诉玩家这个位置该放什么。槽里有物品时则完全保留原本的物品提示。
 	 * 这里钩在 {@code drawMouseoverTooltip} 上，而不是依赖 {@code focusedSlot}，
@@ -156,6 +219,14 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 		}
 
 		if (!trinketsTooltip$getTcp().getTrinketsShow() || !this.handler.getCursorStack().isEmpty()) {
+			return;
+		}
+
+		// 开关图标自己也有一条提示，命中它时就不再画槽位名了（物品提示框已经被
+		// isPointOverSlot 那边拦掉了，所以这里画什么就是玩家看到的唯一一条）。
+		Slot toggle = trinketsTooltip$getHoveredRenderToggle(mouseX, mouseY);
+		if (toggle != null) {
+			context.drawTooltip(this.textRenderer, TrinketRenderToggle.TOOLTIP, mouseX, mouseY);
 			return;
 		}
 
@@ -177,7 +248,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
-		if (!trinketsTooltip$correct || !ModConfig.pagination || trinketsTooltip$isRecipeBookOpen()
+		if (!trinketsTooltip$correct || trinketsTooltip$isRecipeBookOpen()
 				|| !trinketsTooltip$getTcp().getTrinketsShow()
 				|| !ThemeClient.isScrolledInTrinkets(trinketsTooltip$getTcp(), mouseX, mouseY, this.x, this.y)) {
 			return false;

@@ -6,11 +6,8 @@
   "config.trinkets-tooltip.category.panel": "Panel",
   "config.trinkets-tooltip.category.general": "General",
 
-  "config.trinkets-tooltip.pagination": "Pagination",
-  "config.trinkets-tooltip.pagination.tooltip": "Split the panel into pages with previous/next arrows, like Curios. Turn off to lay every slot out at once.",
-
   "config.trinkets-tooltip.min_width": "Min Width",
-  "config.trinkets-tooltip.min_width.tooltip": "Columns per page. Only used when pagination is enabled.",
+  "config.trinkets-tooltip.min_width.tooltip": "Columns per page.",
 
   "config.trinkets-tooltip.max_height": "Max Height",
   "config.trinkets-tooltip.max_height.tooltip": "Rows per page.",
@@ -21,5 +18,7 @@
   "config.trinkets-tooltip.jei_slot_lookup": "JEI Slot Lookup",
   "config.trinkets-tooltip.jei_slot_lookup.tooltip": "Left clicking an empty trinket slot opens JEI listing every item that can be equipped there.",
 
-  "config.trinkets-tooltip.range": "Must be between %s and %s"
+  "config.trinkets-tooltip.range": "Must be between %s and %s",
+
+  "gui.trinkets-tooltip.toggle_render": "Toggle Rendering"
 }

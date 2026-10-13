@@ -33,13 +33,13 @@ public class TrinketsTooltipConfig implements IModConfig {
 
 	/** 这些键对应的 {@code config.<modid>.<key>.tooltip} 翻译是存在的。 */
 	public static final Set<String> TOOLTIP_KEYS = Set.of(
-			"pagination", "min_width", "max_height", "scrolling_outside_boundary", "jei_slot_lookup");
+			"min_width", "max_height", "scrolling_outside_boundary", "jei_slot_lookup");
 
 	static {
-		CATEGORIES.put("panel", List.of("pagination", "min_width", "max_height"));
+		// 分页不是选项：面板固定分页，所以这里没有 pagination。
+		CATEGORIES.put("panel", List.of("min_width", "max_height"));
 		CATEGORIES.put("general", List.of("scrolling_outside_boundary", "jei_slot_lookup"));
 
-		DEFAULT_VALUES.put("pagination", true);
 		DEFAULT_VALUES.put("scrolling_outside_boundary", false);
 		DEFAULT_VALUES.put("jei_slot_lookup", true);
 
@@ -85,8 +85,7 @@ public class TrinketsTooltipConfig implements IModConfig {
 			return;
 		}
 
-		ModConfig.refresh(this.values.get("pagination").get(),
-				this.values.get("scrolling_outside_boundary").get(),
+		ModConfig.refresh(this.values.get("scrolling_outside_boundary").get(),
 				this.intValues.get("max_height").get(),
 				this.intValues.get("min_width").get(),
 				this.values.get("jei_slot_lookup").get());
