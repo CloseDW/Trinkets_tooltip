@@ -46,10 +46,4 @@
 
 * 感谢 jptrzy 的[trinkets-curios-theme](https://github.com/jptrzy/trinkets-curios-theme-mod)和**C4 (TheIllusiveC4)** 的 [Curios](https://github.com/TheIllusiveC4/Curios)提供的灵感， 采用 **LGPL-3.0** 许可。
 
-滚动条贴图（`assets/trinkets-tooltip/textures/gui/baubles_scroller.png`）裁自
-[BaublesEX](https://github.com/darktire/BaublesEX) / [Baubles](https://github.com/Azanor/Baubles) 的
-`assets/baubles/textures/gui/baubles_container.png`：18×166 的轨道和 6×89 的滑块，并排拼进一张 24×166 的图。
-**注意**：这两个仓库都没有 LICENSE 文件（GitHub API 两边的 `license` 都是 `null`），所以这一张素材是在
-没有明确授权声明的情况下使用的 —— 商业再分发前请先把它换掉。
-
 由于本作品派生自 LGPL-3.0 项目，整个模组以 **LGPL-3.0** 分发。见 [LICENSE](LICENSE)。

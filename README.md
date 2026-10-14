@@ -47,13 +47,6 @@ Either way the mouse wheel scrolls up to reveal the earlier slots.
 
 * Thanks for the inspiration provided by[trinkets-curios-theme](https://github.com/jptrzy/trinkets-curios-theme-mod) by **jptrzy** and [Curios](https://github.com/TheIllusiveC4/Curios) by **C4 (TheIllusiveC4)**,
 * licensed under**LGPL-3.0**.
-
-The scrollbar artwork (`assets/trinkets-tooltip/textures/gui/baubles_scroller.png`) is cropped out of
-[BaublesEX](https://github.com/darktire/BaublesEX) / [Baubles](https://github.com/Azanor/Baubles)
-(`assets/baubles/textures/gui/baubles_container.png`): the 18×166 track and the 6×89 thumb, put side by side
-in one 24×166 image. **Note:** neither repository ships a licence file (the GitHub API reports
-`license: null` for both), so that single asset is used without an explicit licence — swap it out if you
-redistribute this mod commercially.
-
+* 
 Because this work is derived from an LGPL-3.0 project, the mod as a whole is distributed
 under **LGPL-3.0**. See [LICENSE](LICENSE).
