@@ -27,16 +27,33 @@ Gives [Trinkets](https://modrinth.com/mod/5aaWibi9) the look and feel of
 
 | Option | Default | Range | Effect |
 |---|---|---|---|
-| `min_width` | `1` | 1–4 | Columns per page. |
-| `max_height` | `7` | 2–7 | Rows per page. |
-| `scrolling_outside_boundary` | `false` | — | Let the mouse wheel turn pages anywhere in the inventory, not just over the panel. |
+| `min_width` | `1` | 1–4 | Columns per page, or per screen when the scrollbar is on. |
+| `max_height` | `7` | 2–7 | Rows per page, or rows shown at once when the scrollbar is on. |
+| `scrollbar` | `false` | — | Swap the page arrows for a Baubles style scrollbar on the left of the panel: no paging, the panel stays `max_height` rows tall and the mouse wheel scrolls one row at a time. |
 | `jei_slot_lookup` | `true` | — | Left clicking an empty trinket slot opens JEI listing every item that can be equipped there. |
 | `render_disabled_slots` | *(empty)* | — | Trinket slots whose rendering is turned off, written by the panel's render toggle. |
+
+The panel has two mutually exclusive layouts:
+
+* **Paging** (`scrollbar = false`, the default): a page is `min_width` columns × `max_height` rows, and the
+  rest of the slots are reached with the arrows or the mouse wheel.
+* **Scrollbar** (`scrollbar = true`): the page arrows are gone. A Baubles style scrollbar sits to the left of
+  the panel, the panel keeps showing `max_height` rows, and the content scrolls a row at a time — with the
+  mouse wheel, or by dragging the thumb (clicking anywhere on the track jumps the thumb there).
+
+Either way the mouse wheel scrolls up to reveal the earlier slots.
 
 ## Credits and license
 
 * Thanks for the inspiration provided by[trinkets-curios-theme](https://github.com/jptrzy/trinkets-curios-theme-mod) by **jptrzy** and [Curios](https://github.com/TheIllusiveC4/Curios) by **C4 (TheIllusiveC4)**,
 * licensed under**LGPL-3.0**.
+
+The scrollbar artwork (`assets/trinkets-tooltip/textures/gui/baubles_scroller.png`) is cropped out of
+[BaublesEX](https://github.com/darktire/BaublesEX) / [Baubles](https://github.com/Azanor/Baubles)
+(`assets/baubles/textures/gui/baubles_container.png`): the 18×166 track and the 6×89 thumb, put side by side
+in one 24×166 image. **Note:** neither repository ships a licence file (the GitHub API reports
+`license: null` for both), so that single asset is used without an explicit licence — swap it out if you
+redistribute this mod commercially.
 
 Because this work is derived from an LGPL-3.0 project, the mod as a whole is distributed
 under **LGPL-3.0**. See [LICENSE](LICENSE).

@@ -7,13 +7,13 @@
   "config.trinkets-tooltip.category.general": "通用",
 
   "config.trinkets-tooltip.min_width": "面板最小列数",
-  "config.trinkets-tooltip.min_width.tooltip": "每页的列数。",
+  "config.trinkets-tooltip.min_width.tooltip": "每页的列数；开了滚动条时就是每一屏的列数。",
 
   "config.trinkets-tooltip.max_height": "面板最大行数",
-  "config.trinkets-tooltip.max_height.tooltip": "每页的行数。",
+  "config.trinkets-tooltip.max_height.tooltip": "每页的行数；开了滚动条时就是面板一次显示的行数。",
 
-  "config.trinkets-tooltip.scrolling_outside_boundary": "允许在面板外滚动",
-  "config.trinkets-tooltip.scrolling_outside_boundary.tooltip": "在背包内任意位置滚轮都能翻页，而不只是在面板上。",
+  "config.trinkets-tooltip.scrollbar": "滚动条（滑轮）",
+  "config.trinkets-tooltip.scrollbar.tooltip": "用面板左侧的 Baubles 风格滚动条取代翻页箭头，两者互斥；滚轮改为每次滚动一行。",
 
   "config.trinkets-tooltip.jei_slot_lookup": "JEI 槽位查询",
   "config.trinkets-tooltip.jei_slot_lookup.tooltip": "左键点击空的饰品槽会打开 JEI，列出所有能装进该槽位的物品。",

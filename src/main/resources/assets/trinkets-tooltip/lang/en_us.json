@@ -7,13 +7,13 @@
   "config.trinkets-tooltip.category.general": "General",
 
   "config.trinkets-tooltip.min_width": "Min Width",
-  "config.trinkets-tooltip.min_width.tooltip": "Columns per page.",
+  "config.trinkets-tooltip.min_width.tooltip": "Columns per page, or per screen when the scrollbar is on.",
 
   "config.trinkets-tooltip.max_height": "Max Height",
-  "config.trinkets-tooltip.max_height.tooltip": "Rows per page.",
+  "config.trinkets-tooltip.max_height.tooltip": "Rows per page, or rows shown at once when the scrollbar is on.",
 
-  "config.trinkets-tooltip.scrolling_outside_boundary": "Scrolling Outside Boundary",
-  "config.trinkets-tooltip.scrolling_outside_boundary.tooltip": "Turning pages with the mouse wheel works anywhere in the inventory, not just over the panel.",
+  "config.trinkets-tooltip.scrollbar": "Scrollbar",
+  "config.trinkets-tooltip.scrollbar.tooltip": "Replace the page arrows with a Baubles style scrollbar on the left of the panel. The mouse wheel then scrolls one row at a time.",
 
   "config.trinkets-tooltip.jei_slot_lookup": "JEI Slot Lookup",
   "config.trinkets-tooltip.jei_slot_lookup.tooltip": "Left clicking an empty trinket slot opens JEI listing every item that can be equipped there.",

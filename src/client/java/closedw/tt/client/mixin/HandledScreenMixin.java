@@ -1,5 +1,6 @@
 package closedw.tt.client.mixin;
 
+import closedw.tt.client.theme.CuriosPanelButton;
 import closedw.tt.client.theme.ThemeClient;
 import closedw.tt.client.theme.TrinketRenderToggle;
 import closedw.tt.client.theme.interfaces.TCTPlayerScreenHandlerInterface;
@@ -11,7 +12,6 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.client.gui.screen.ingame.ScreenHandlerProvider;
-import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
@@ -26,7 +26,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * 在玩家背包旁边绘制 Curios 风格的面板、显示/隐藏按钮，并把滚轮输入转发给 {@link ThemeClient}。
+ * 在玩家背包旁边绘制 Curios 风格的面板、显示/隐藏按钮和（可选的）左侧滚动条，
+ * 并把滚轮、滑块拖动这些输入转发给 {@link ThemeClient}。
  */
 @Mixin(HandledScreen.class)
 public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen implements ScreenHandlerProvider<T> {
@@ -36,6 +37,9 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 	@Shadow protected int y;
 
 	@Unique private boolean trinketsTooltip$correct = false;
+
+	/** 正按着左侧滚动条的滑块（或轨道）拖动。 */
+	@Unique private boolean trinketsTooltip$scrollerDragging = false;
 
 	/**
 	 * 占位构造函数：Mixin 会丢弃私有的 mixin 构造函数，
@@ -77,8 +81,8 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 			return;
 		}
 
-		this.addDrawableChild(new TexturedButtonWidget(this.x + 26, this.y + 8, 14, 14, 0, 0, 14,
-				ThemeClient.CURIOS_BUTTON_TEXTURE, 14, 28, button -> ThemeClient.toggleCuriosView()));
+		// 按钮贴图跟着面板状态走，见 CuriosPanelButton。
+		this.addDrawableChild(new CuriosPanelButton(this.x + 26, this.y + 8, 14, 14, trinketsTooltip$getTcp()));
 
 		ThemeClient.updateSlots(this.handler.slots, trinketsTooltip$getTcp());
 	}
@@ -127,6 +131,14 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 			return;
 		}
 
+		// 左侧滚动条：在轨道任意位置按下都开始拖滑块（1.19 原版就是这样），这一次点击同样不再往下传。
+		if (ThemeClient.isMouseOverScrollbar(tcp, mouseX, mouseY, this.x, this.y)) {
+			trinketsTooltip$scrollerDragging = true;
+			ThemeClient.dragScrollbarTo(this.handler.slots, tcp, mouseY, this.y);
+			cir.setReturnValue(true);
+			return;
+		}
+
 		if (ThemeClient.isClickInPageButtons(tcp, mouseX, mouseY, this.x, this.y)) {
 			boolean next = ThemeClient.isClickInNextPage(mouseX, this.x);
 			ThemeClient.changePage(this.handler.slots, tcp, next ? 1 : -1);
@@ -165,13 +177,11 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 	 * 画饰品槽右上角那枚「启用饰品渲染」开关，做法照 Curios 的 RenderButton
 	 * （具体位置由 {@link TrinketRenderToggle} 里的偏移常量决定，比 Curios 再靠左 2 像素，
 	 * 免得被右边相邻的槽位盖住）。
-	 *
-	 * <p>挂在 {@code drawSlot} 的 TAIL 上，是想让图标盖在槽位里的物品图标之上 ——
+     * 挂在 {@code drawSlot} 的 TAIL 上，是想让图标盖在槽位里的物品图标之上 ——
 	 * Curios 也是在画完槽位之后才把这些开关覆盖上去的，而原版画槽位时已经关掉了深度测试
 	 * （{@code HandledScreen.render} 里的 {@code RenderSystem.disableDepthTest()}），
 	 * 所以后画的图标就在上层。
-	 *
-	 * <p>注意坐标系：{@code HandledScreen.render} 在开始循环画槽位之前，已经把矩阵平移到了
+	 * 注意坐标系：{@code HandledScreen.render} 在开始循环画槽位之前，已经把矩阵平移到了
 	 * 界面左上角，所以 {@code drawSlot} 里一律用槽位的 GUI 相对坐标，图标位置也一样
 	 * （{@link TrinketRenderToggle#drawIcon} 里不再加 this.x/this.y）。
 	 */
@@ -188,8 +198,7 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 	 * 和 Curios 一样：鼠标停在渲染开关上时，这一格不算「悬停在槽位上」。
 	 * 这样物品提示框、槽位高亮和空槽位的槽位名提示都会让位给开关自己的提示
 	 * （见 {@link #trinketsTooltip$drawSlotName}）。
-	 *
-	 * <p>原版 {@code HandledScreen.isPointOverSlot} 是私有方法，直接把 HEAD 钩进去即可；
+	 * 原版 {@code HandledScreen.isPointOverSlot} 是私有方法，直接把 HEAD 钩进去即可；
 	 * {@code InventoryScreen} 里对 {@code isPointWithinBounds} 的覆写不受影响。
 	 */
 	@Inject(method = "isPointOverSlot", at = @At("HEAD"), cancellable = true)
@@ -246,6 +255,35 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 		context.drawTooltip(this.textRenderer, slotName, mouseX, mouseY);
 	}
 
+	/**
+	 * 拖动滚动条的滑块。滑块的位置只看鼠标的 Y，所以往两边拖出轨道也照样跟手。
+	 * 1.20.1 的 {@code HandledScreen} 也自己声明了 {@code mouseDragged} 和 {@code mouseReleased}，
+	 * 不像 {@code mouseScrolled} 那样只有父类实现，所以这里只能注入，不能直接覆写。
+	 */
+	@Inject(method = "mouseDragged", at = @At("HEAD"), cancellable = true)
+	private void trinketsTooltip$mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY,
+			CallbackInfoReturnable<Boolean> cir) {
+		if (!trinketsTooltip$scrollerDragging) {
+			return;
+		}
+
+		if (!trinketsTooltip$correct || !trinketsTooltip$getTcp().getTrinketsShow()) {
+			trinketsTooltip$scrollerDragging = false;
+			return;
+		}
+
+		ThemeClient.dragScrollbarTo(this.handler.slots, trinketsTooltip$getTcp(), mouseY, this.y);
+		cir.setReturnValue(true);
+	}
+
+	@Inject(method = "mouseReleased", at = @At("HEAD"))
+	private void trinketsTooltip$mouseReleased(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
+		trinketsTooltip$scrollerDragging = false;
+	}
+
+	/**
+	 * 滚轮：滚动条模式一格一行，分页模式一格一页，方向都按原版的约定（往上 = 往前看）。
+	 */
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
 		if (!trinketsTooltip$correct || trinketsTooltip$isRecipeBookOpen()
@@ -255,7 +293,16 @@ public abstract class HandledScreenMixin<T extends ScreenHandler> extends Screen
 		}
 
 		if (amount != 0) {
-			ThemeClient.changePage(this.handler.slots, trinketsTooltip$getTcp(), amount > 0 ? 1 : -1);
+			TCTPlayerScreenHandlerInterface tcp = trinketsTooltip$getTcp();
+			// 滚轮往上（amount > 0）就是往前看：两种模式都按原版的约定来。
+			// 滚动条模式滚一行，分页模式翻一页。
+			int step = amount > 0 ? -1 : 1;
+
+			if (ThemeClient.isScrollbarMode()) {
+				ThemeClient.scrollRows(this.handler.slots, tcp, step);
+			} else {
+				ThemeClient.changePage(this.handler.slots, tcp, step);
+			}
 		}
 		return true;
 	}

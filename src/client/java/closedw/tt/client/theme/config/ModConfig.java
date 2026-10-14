@@ -31,16 +31,22 @@ public class ModConfig {
 	public static final int MIN_WIDTH_MIN = 1;
 	public static final int MIN_WIDTH_MAX = 4;
 
-	public static boolean scrolling_outside_boundary = false;
 	public static int max_height = 7;
 	public static int min_width = 1;
 	public static boolean jei_slot_lookup = true;
 
 	/**
+	 * 用面板左侧的滚动条代替翻页箭头，两者互斥。
+	 * 关着（默认）时就是原来的分页：一页 {@code min_width} 列 × {@code max_height} 行，
+	 * 靠箭头或滚轮整页翻。打开之后不再分页，面板高度固定为 {@code max_height} 行，
+	 * 内容按行滚动，滚轮的每一格走一行。
+	 */
+	public static boolean scrollbar = false;
+
+	/**
 	 * Curios 风格「启用饰品渲染」开关里被关掉的槽位，键是
 	 * {@code closedw.tt.client.theme.TrinketRenderToggle#key}，例如 {@code chest/necklace#0}。
-	 *
-	 * <p>Curios 把渲染状态存在玩家身上并由服务端同步，本模组是纯客户端模组，
+	 * Curios 把渲染状态存在玩家身上并由服务端同步，本模组是纯客户端模组，
 	 * 所以状态只能存在本机的属性文件里；这个选项刻意不出现在 Configured 界面上，
 	 * 它由面板上的开关图标维护（逗号分隔的一串键）。
 	 */
@@ -56,8 +62,8 @@ public class ModConfig {
 	/** 供 Configured 适配层使用的按键读取。 */
 	public static boolean getBoolean(String key) {
 		return switch (key) {
-			case "scrolling_outside_boundary" -> scrolling_outside_boundary;
 			case "jei_slot_lookup" -> jei_slot_lookup;
+			case "scrollbar" -> scrollbar;
 			default -> false;
 		};
 	}
@@ -83,10 +89,10 @@ public class ModConfig {
 			}
 		}
 
-		// 分页已经不再是选项：它是固定行为，所以旧配置里的 pagination 键被忽略，
-		// 下一次 save() 会把那一行自然清掉。
-		scrolling_outside_boundary = readBoolean(props, "scrolling_outside_boundary", scrolling_outside_boundary);
+		// 分页不再是唯一的排版方式，而是由 scrollbar 在「翻页箭头」和「左侧滚动条」之间二选一；
+		// 下一次 save() 会把它们自然清掉（旧文件里的值不再被读取）。
 		jei_slot_lookup = readBoolean(props, "jei_slot_lookup", jei_slot_lookup);
+		scrollbar = readBoolean(props, "scrollbar", scrollbar);
 		max_height = clamp(readInt(props, "max_height", max_height), MAX_HEIGHT_MIN, MAX_HEIGHT_MAX);
 		min_width = clamp(readInt(props, "min_width", min_width), MIN_WIDTH_MIN, MIN_WIDTH_MAX);
 
@@ -116,8 +122,8 @@ public class ModConfig {
 	/** 把当前的值写回属性文件。 */
 	public static void save() {
 		Properties props = new Properties();
-		props.setProperty("scrolling_outside_boundary", String.valueOf(scrolling_outside_boundary));
 		props.setProperty("jei_slot_lookup", String.valueOf(jei_slot_lookup));
+		props.setProperty("scrollbar", String.valueOf(scrollbar));
 		props.setProperty("max_height", String.valueOf(max_height));
 		props.setProperty("min_width", String.valueOf(min_width));
 		props.setProperty(RENDER_DISABLED_SLOTS_KEY, String.join(",", render_disabled_slots));
@@ -135,10 +141,10 @@ public class ModConfig {
 	}
 
 	/** 只收原始类型，这样这个类永远不需要解析 Configured 的类型。 */
-	public static void refresh(boolean scrollingOutsideBoundaryValue, int maxHeightValue, int minWidthValue,
-			boolean jeiSlotLookupValue) {
-		scrolling_outside_boundary = scrollingOutsideBoundaryValue;
+	public static void refresh(int maxHeightValue, int minWidthValue, boolean jeiSlotLookupValue,
+			boolean scrollbarValue) {
 		jei_slot_lookup = jeiSlotLookupValue;
+		scrollbar = scrollbarValue;
 		max_height = clamp(maxHeightValue, MAX_HEIGHT_MIN, MAX_HEIGHT_MAX);
 		min_width = clamp(minWidthValue, MIN_WIDTH_MIN, MIN_WIDTH_MAX);
 	}

@@ -21,6 +21,14 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Curios 风格饰品面板的渲染与布局计算。
+ *
+ * <p>面板有两种互斥的排版，由 {@code ModConfig.scrollbar} 决定：
+ * <ul>
+ *     <li>分页（默认）：面板顶端一条翻页箭头，一页 {@code min_width} 列 × {@code max_height} 行；</li>
+ *     <li>滚动条：面板左侧一条 Baubles 风格的滚动条，面板固定 {@code max_height} 行，按行滚动。</li>
+ * </ul>
+ * 两者都是「把第 N 行到第 N + {@code max_height} 行画出来」，只是 N 一个由页码、一个由滚动量算出来，
+ * 所以槽位摆放、空白格抹平、悬停判定全都共用同一套按行开窗的逻辑。
  */
 public final class ThemeClient {
 
@@ -37,7 +45,48 @@ public final class ThemeClient {
 	private static final int REVAMP_ARROW_V_ENABLED = 126;
 	private static final int REVAMP_ARROW_V_DISABLED = 138;
 
+	/** 14x28 的双帧贴图：上半张是"面板关着"，下半张是"鼠标悬停"。 */
 	public static final Identifier CURIOS_BUTTON_TEXTURE = new Identifier(TrinketsTooltip.MOD_ID, "textures/gui/inventory.png");
+
+	/**
+	 * "面板开着"那一张。1.20 的按钮原本只用一张 14x28 的双帧图（普通 + 悬停），
+	 * 装不下第三种状态，所以打开态另给一张 14x14 的图，绘制方式见
+	 * {@link CuriosPanelButton}。
+	 */
+	public static final Identifier CURIOS_BUTTON_OPEN = new Identifier(TrinketsTooltip.MOD_ID, "textures/gui/curios_button_open.png");
+
+	/* ------------------------------------------------------------------ 左侧滚动条（Baubles 风格） */
+
+	/**
+	 * 滚动条贴图。原图是 Baubles 的 {@code baubles:textures/gui/baubles_container.png}：
+	 * 轨道在 {@code (0,0)} 处 18x166，滑块在 {@code (0,167)} 处 6x89，同一张图里还画着
+	 * Baubles 自己的槽位、按钮和遮挡块。这里只把那两块拼进一张 24x166 的新图
+	 * （轨道仍在 {@code (0,0)}，滑块挪到 {@code (18,0)}），省得把无关素材一起带上。
+	 *
+	 * <p>轨道比本模组的面板高（166 对最多 148），所以按九宫格用：顶部 16 行、底部 8 行原样画，
+	 * 中间 142 行压缩或拉伸 —— 这一段正好是 Baubles 里滑块能走完的凹槽区间。
+	 */
+	public static final Identifier BAUBLES_SCROLLER = new Identifier(TrinketsTooltip.MOD_ID, "textures/gui/baubles_scroller.png");
+
+	private static final int SCROLLER_TEXTURE_WIDTH = 24;
+	private static final int SCROLLER_TEXTURE_HEIGHT = 166;
+	private static final int SCROLLER_WIDTH = 18;
+	private static final int SCROLLER_TRACK_TOP_V = 0;
+	private static final int SCROLLER_TRACK_TOP_HEIGHT = 16;
+	private static final int SCROLLER_TRACK_MIDDLE_V = 16;
+	private static final int SCROLLER_TRACK_MIDDLE_HEIGHT = 142;
+	private static final int SCROLLER_TRACK_BOTTOM_V = 158;
+	private static final int SCROLLER_TRACK_BOTTOM_HEIGHT = 8;
+	private static final int SCROLLER_THUMB_U = 18;
+	private static final int SCROLLER_THUMB_V = 0;
+	private static final int SCROLLER_THUMB_WIDTH = 6;
+	private static final int SCROLLER_THUMB_TEXTURE_HEIGHT = 89;
+	/** 滑块在轨道里的横向位置：Baubles 也是从轨道左边 6 像素处开始画。 */
+	private static final int SCROLLER_THUMB_INSET_X = 6;
+	/** 滑块最短高度，免得行数一多滑块就细得看不出来。 */
+	private static final int SCROLLER_THUMB_MIN_HEIGHT = 18;
+	/** 滚动条与面板之间的间隙。Baubles 自己留 1～2 像素，这里取 1，让两者贴得更紧。 */
+	private static final int SCROLLER_GAP = 1;
 
 	private ThemeClient() {
 	}
@@ -119,8 +168,8 @@ public final class ThemeClient {
 	}
 
 	/**
-	 * 面板的列数。分页现在是固定行为，一页就是 {@code min_width} 列，
-	 * 所以列数直接等于 {@code min_width}（从前可以用配置关掉分页把槽位一次铺开，那个开关已经取消）。
+	 * 面板的列数。两种模式都用 {@code min_width} 列，所以列数直接等于 {@code min_width}
+	 * （从前可以用配置关掉分页把槽位一次铺开，那个开关已经取消）。
 	 */
 	public static int getPanelColumns(int length) {
 		if (length < 1) {
@@ -128,6 +177,67 @@ public final class ThemeClient {
 		}
 
 		return ModConfig.min_width;
+	}
+
+	/** 面板高度：上下各 7 像素边框加中间的行，分页条另算。 */
+	public static int getPanelHeight(int rows, boolean paged) {
+		return 7 + rows * 18 + (paged ? PAGE_STRIP_HEIGHT : 0) + 7;
+	}
+
+	/** 内容一共有多少行。 */
+	public static int getTotalRows(int length) {
+		int columns = getPanelColumns(length);
+
+		if (columns < 1 || length < 1) {
+			return 0;
+		}
+
+		return MathHelper.ceil((float) length / columns);
+	}
+
+	/** 滚动条模式下能滚到的最大行偏移；内容不足一屏时是 0。 */
+	public static int getMaxScrollRow(int length) {
+		return Math.max(0, getTotalRows(length) - ModConfig.max_height);
+	}
+
+	/** 用的是滚动条而不是翻页箭头。 */
+	public static boolean isScrollbarMode() {
+		return ModConfig.scrollbar;
+	}
+
+	/** 滚动条是否要画：开了这个模式，而且内容确实超出一屏。 */
+	public static boolean isScrollbarVisible(int length) {
+		return isScrollbarMode() && getMaxScrollRow(length) > 0;
+	}
+
+	/**
+	 * 当前窗口的第一行。分页模式下行偏移是「页码 × {@code max_height}」，滚动条模式下就是滚动量本身。
+	 * 两种模式共用同一套「按行开窗」的布局，槽位摆放和命中判定因此不会出现两份算法。
+	 */
+	public static int getFirstVisibleRow(TCTPlayerScreenHandlerInterface tcp) {
+		if (isScrollbarMode()) {
+			return tcp.getScrollIndex();
+		}
+
+		return tcp.getScrollIndex() * ModConfig.max_height;
+	}
+
+	/** 当前窗口第一个饰品槽的序号。 */
+	public static int getFirstVisibleSlot(int length, TCTPlayerScreenHandlerInterface tcp) {
+		return getFirstVisibleRow(tcp) * Math.max(1, getPanelColumns(length));
+	}
+
+	/**
+	 * 把存下来的滚动量收进合法范围。配置里行数上限改了、或者刚在两种模式之间切换时，
+	 * 原来的页码/行偏移可能已经越界，所以每帧排布之前都先收一次。
+	 */
+	public static void clampScrollIndex(TCTPlayerScreenHandlerInterface tcp, int length) {
+		int max = isScrollbarMode() ? getMaxScrollRow(length) : Math.max(0, getPageCount(length) - 1);
+		int clamped = MathHelper.clamp(tcp.getScrollIndex(), 0, max);
+
+		if (clamped != tcp.getScrollIndex()) {
+			tcp.setScrollIndex(clamped);
+		}
 	}
 
 	public static void drawBackground(DrawContext context, int x, int y, TCTPlayerScreenHandlerInterface tcp) {
@@ -171,8 +281,9 @@ public final class ThemeClient {
 					REVAMP_SLOT_U, 0, 18, rows * 18, REVAMP_WIDTH, REVAMP_HEIGHT);
 		}
 
-		// 网格中这一页没有真实饰品槽的空格，看起来仍然会像一个空槽位，所以用面板底色把它们盖掉，连同凹槽的边框和高光一起抹平。
-		int onPage = Math.min(getSlotsPerPage(), Math.max(0, length - tcp.getScrollIndex() * getSlotsPerPage()));
+		// 网格里这一屏没有真实饰品槽的空格，看起来仍然会像一个空槽位，所以用面板底色把它们盖掉，连同凹槽的边框和高光一起抹平。
+		// 分页模式下「这一屏」是一页，滚动条模式下是当前那一窗。
+		int onPage = Math.min(getSlotsPerPage(), Math.max(0, length - getFirstVisibleSlot(length, tcp)));
 		int cells = columns * rows;
 		for (int cell = onPage; cell < cells; cell++) {
 			int cellX = x + getSlotStripX(cell % columns, columns);
@@ -182,6 +293,10 @@ public final class ThemeClient {
 
 		if (paged) {
 			drawPageButtons(context, tcp, x, y);
+		}
+
+		if (isScrollbarVisible(length)) {
+			drawScrollbar(context, x, y, columns, rows, length, tcp);
 		}
 	}
 
@@ -224,6 +339,115 @@ public final class ThemeClient {
 				nextY, PAGE_BUTTON_WIDTH, PAGE_BUTTON_HEIGHT, REVAMP_WIDTH, REVAMP_HEIGHT);
 	}
 
+	/* ------------------------------------------------------------------ 滚动条几何 */
+
+	/** 滚动条最左边（相对 GUI 坐标）：贴在面板左侧，和面板之间留 {@value #SCROLLER_GAP} 像素。 */
+	public static int getScrollbarLeft(int columns) {
+		return getPanelLeft(columns) - SCROLLER_GAP - SCROLLER_WIDTH;
+	}
+
+	/** 滚动条高度 = 面板高度（滚动条模式下没有分页条）。 */
+	public static int getScrollbarHeight(int rows) {
+		return getPanelHeight(rows, false);
+	}
+
+	/**
+	 * 滚动条整体范围，相对 GUI 坐标：{@code [left, top, right, bottom]}。
+	 * 没开这个模式、或者内容一屏放得下时返回空范围。
+	 */
+	public static int[] getScrollbarBounds(TCTPlayerScreenHandlerInterface tcp) {
+		int length = getTrinketSlotCount(tcp);
+		int columns = getPanelColumns(length);
+		int rows = getPanelRows(length);
+
+		if (columns < 1 || rows < 1 || !isScrollbarVisible(length)) {
+			return new int[] { 0, 0, 0, 0 };
+		}
+
+		int left = getScrollbarLeft(columns);
+		return new int[] { left, 0, left + SCROLLER_WIDTH, getScrollbarHeight(rows) };
+	}
+
+	/**
+	 * 鼠标是否落在滚动条上。判定就是滚动条本身那一块，不像面板那样往外留白 ——
+	 * 左边是屏幕边缘方向，多留白反而会抢走本不属于它的点击。
+	 *
+	 * @param mouseX 绝对屏幕坐标；{@code guiX}/{@code guiY} 是界面左上角。
+	 */
+	public static boolean isMouseOverScrollbar(TCTPlayerScreenHandlerInterface tcp, double mouseX, double mouseY,
+			int guiX, int guiY) {
+		int[] bounds = getScrollbarBounds(tcp);
+
+		if (bounds[2] <= bounds[0]) {
+			return false;
+		}
+
+		double localX = mouseX - guiX;
+		double localY = mouseY - guiY;
+		return localX >= bounds[0] && localX < bounds[2] && localY >= bounds[1] && localY < bounds[3];
+	}
+
+	/** 凹槽高度：轨道上下那两条固定边不参与缩放。 */
+	private static int getGrooveHeight(int rows) {
+		return getScrollbarHeight(rows) - SCROLLER_TRACK_TOP_HEIGHT - SCROLLER_TRACK_BOTTOM_HEIGHT;
+	}
+
+	/**
+	 * 滑块高度：按「看得见的行 / 总行数」缩放，并夹在 {@value #SCROLLER_THUMB_MIN_HEIGHT} 像素和凹槽高度之间。
+	 * Baubles 那边滑块是固定 89 像素的，行数一变位置就没法还原；这里按比例算。
+	 */
+	public static int getThumbHeight(int rows, int length) {
+		int groove = getGrooveHeight(rows);
+		int total = Math.max(1, getTotalRows(length));
+		int visible = Math.min(getPanelRows(length), total);
+		int height = Math.round(groove * (visible / (float) total));
+
+		return MathHelper.clamp(height, Math.min(SCROLLER_THUMB_MIN_HEIGHT, groove), groove);
+	}
+
+	/** 滑块相对滚动条顶部的偏移（已经含凹槽上边那 16 像素）。 */
+	public static int getThumbOffset(int rows, int length, TCTPlayerScreenHandlerInterface tcp) {
+		int travel = getGrooveHeight(rows) - getThumbHeight(rows, length);
+		int maxRow = getMaxScrollRow(length);
+
+		if (travel <= 0 || maxRow <= 0) {
+			return 0;
+		}
+
+		int row = MathHelper.clamp(tcp.getScrollIndex(), 0, maxRow);
+		return Math.round(travel * (row / (float) maxRow));
+	}
+
+	/**
+	 * 画左侧滚动条：九宫格轨道 + 按比例缩放的滑块。
+	 *
+	 * <p>滑块贴图原本是 6x89，比这里需要的短/长都可能，所以用带目标尺寸的
+	 * {@code drawTexture} 重载把它压/拉到 {@link #getThumbHeight} 算出来的高度；
+	 * 纵向的斜纹是重复图案，拉伸看不出来。
+	 */
+	private static void drawScrollbar(DrawContext context, int x, int y, int columns, int rows, int length,
+			TCTPlayerScreenHandlerInterface tcp) {
+		int left = x + getScrollbarLeft(columns);
+		int top = y;
+		int height = getScrollbarHeight(rows);
+		int middleHeight = height - SCROLLER_TRACK_TOP_HEIGHT - SCROLLER_TRACK_BOTTOM_HEIGHT;
+
+		context.drawTexture(BAUBLES_SCROLLER, left, top, 0, SCROLLER_TRACK_TOP_V,
+				SCROLLER_WIDTH, SCROLLER_TRACK_TOP_HEIGHT, SCROLLER_TEXTURE_WIDTH, SCROLLER_TEXTURE_HEIGHT);
+		context.drawTexture(BAUBLES_SCROLLER, left, top + SCROLLER_TRACK_TOP_HEIGHT, SCROLLER_WIDTH, middleHeight,
+				0, SCROLLER_TRACK_MIDDLE_V, SCROLLER_WIDTH, SCROLLER_TRACK_MIDDLE_HEIGHT,
+				SCROLLER_TEXTURE_WIDTH, SCROLLER_TEXTURE_HEIGHT);
+		context.drawTexture(BAUBLES_SCROLLER, left, top + height - SCROLLER_TRACK_BOTTOM_HEIGHT,
+				0, SCROLLER_TRACK_BOTTOM_V, SCROLLER_WIDTH, SCROLLER_TRACK_BOTTOM_HEIGHT,
+				SCROLLER_TEXTURE_WIDTH, SCROLLER_TEXTURE_HEIGHT);
+
+		int thumb = getThumbHeight(rows, length);
+		int thumbTop = top + SCROLLER_TRACK_TOP_HEIGHT + getThumbOffset(rows, length, tcp);
+		context.drawTexture(BAUBLES_SCROLLER, left + SCROLLER_THUMB_INSET_X, thumbTop, SCROLLER_THUMB_WIDTH, thumb,
+				SCROLLER_THUMB_U, SCROLLER_THUMB_V, SCROLLER_THUMB_WIDTH, SCROLLER_THUMB_TEXTURE_HEIGHT,
+				SCROLLER_TEXTURE_WIDTH, SCROLLER_TEXTURE_HEIGHT);
+	}
+
 	/**
 	 * 每页的槽位数量，Curios 风格：一页是 {@code min_width} 列、
 	 * 每列 {@code max_height} 行。
@@ -233,7 +457,7 @@ public final class ThemeClient {
 	}
 
 	/**
-	 * 总页数。分页固定开启，所以超出这一页的槽位一律靠箭头/滚轮翻。
+	 * 总页数。分页模式下超出这一页的槽位靠箭头/滚轮翻；开了滚动条就不用它了。
 	 */
 	public static int getPageCount(int length) {
 		if (length < 1) {
@@ -244,12 +468,13 @@ public final class ThemeClient {
 	}
 
 	/**
-	 * 第 {@code i} 个饰品槽（在饰品槽区间内从 0 开始）是否位于指定页。
-	 * 布局和悬停检测共用这个方法，所以两者永远不会对不上。
+	 * 第 {@code i} 个饰品槽（在饰品槽区间内从 0 开始）是否落在以 {@code firstRow} 开头的那一屏里。
+	 * 分页模式的「一屏」是一页、滚动条模式是一窗，因为都换算成行，这个方法两边共用，
+	 * 布局和悬停检测因此不会对不上。
 	 */
-	public static boolean isSlotVisible(int i, int page) {
-		int first = page * getSlotsPerPage();
-		return i >= first && i < first + getSlotsPerPage();
+	public static boolean isSlotVisible(int i, int firstRow, int columns) {
+		int row = i / Math.max(1, columns);
+		return row >= firstRow && row < firstRow + ModConfig.max_height;
 	}
 
 	/**
@@ -258,7 +483,7 @@ public final class ThemeClient {
 	private static final int HIDDEN_SLOT_COORD = -10000;
 
 	/**
-	 * 移动并启用/禁用饰品槽，让只有当前页会被画出来。
+	 * 移动并启用/禁用饰品槽，让只有当前这一屏会被画出来。
 	 * 每帧都要调用，因为饰品数据一同步 Trinkets 就会重新添加它的槽位。
 	 */
 	public static void updateSlots(DefaultedList<Slot> slots, TCTPlayerScreenHandlerInterface tcp) {
@@ -275,9 +500,12 @@ public final class ThemeClient {
 
 		int start = handler.trinkets$getTrinketSlotStart();
 		int count = handler.trinkets$getTrinketSlotEnd() - start;
-		int first = tcp.getScrollIndex() * getSlotsPerPage();
-		int columns = getPanelColumns(count);
+		int columns = Math.max(1, getPanelColumns(count));
 		boolean paged = isPaginationVisible(count);
+
+		// 配置改了行数上限、或者刚切换过模式时，存下来的页码/滚动量可能已经越界。
+		clampScrollIndex(tcp, count);
+		int firstRow = getFirstVisibleRow(tcp);
 
 		for (int i = 0; i < count; i++) {
 			int slotIndex = start + i;
@@ -291,7 +519,7 @@ public final class ThemeClient {
 			}
 
 			boolean visible = panelVisible && tcp.getTrinketsShow()
-					&& isSlotVisible(i, tcp.getScrollIndex());
+					&& isSlotVisible(i, firstRow, columns);
 			themed.setEnabled(visible);
 
 			if (!visible) {
@@ -300,11 +528,12 @@ public final class ThemeClient {
 				continue;
 			}
 
-			int visibleIndex = i - first;
-			int column = visibleIndex % Math.max(1, columns);
-			int row = visibleIndex / Math.max(1, columns);
+			// 行序就是槽位序号除以列数的商，所以列直接取余数、行减去窗口第一行即可；
+			// 这样即使滚动量暂时越界也不会算出负的行号。
+			int column = i % columns;
+			int row = i / columns - firstRow;
 
-			slot.x = getSlotX(column, Math.max(1, columns));
+			slot.x = getSlotX(column, columns);
 			slot.y = getSlotY(row, paged);
 		}
 	}
@@ -358,9 +587,11 @@ public final class ThemeClient {
 
 		int start = handler.trinkets$getTrinketSlotStart();
 		int count = handler.trinkets$getTrinketSlotEnd() - start;
+		int columns = Math.max(1, getPanelColumns(count));
+		int firstRow = getFirstVisibleRow(tcp);
 
 		for (int i = 0; i < count; i++) {
-			if (!isSlotVisible(i, tcp.getScrollIndex())) {
+			if (!isSlotVisible(i, firstRow, columns)) {
 				continue;
 			}
 
@@ -381,7 +612,7 @@ public final class ThemeClient {
 	}
 
 	/**
-	 * 像 Curios 那样翻到另一页，然后重新排布可见的槽位。
+	 * 像 Curios 那样翻到另一页，然后重新排布可见的槽位。分页模式的滚轮/箭头走这里。
 	 */
 	public static void changePage(DefaultedList<Slot> slots, TCTPlayerScreenHandlerInterface tcp, int delta) {
 		int pages = getPageCount(getTrinketSlotCount(tcp));
@@ -392,10 +623,53 @@ public final class ThemeClient {
 	}
 
 	/**
-	 * 面板是否显示页码条/翻页箭头，也就是确实不止一页的时候。
+	 * 滚动条模式下按行滚动，{@code rows} 为正表示露出更靠后的行。
+	 * 分页模式请用 {@link #changePage}，那时 {@code scrollIndex} 存的是页码而不是行偏移。
+	 */
+	public static void scrollRows(DefaultedList<Slot> slots, TCTPlayerScreenHandlerInterface tcp, int rows) {
+		int maxRow = getMaxScrollRow(getTrinketSlotCount(tcp));
+		tcp.setScrollIndex(MathHelper.clamp(tcp.getScrollIndex() + rows, 0, maxRow));
+
+		updateSlots(slots, tcp);
+	}
+
+	/**
+	 * 拖动滑块：把鼠标的绝对 Y 换算成行偏移。
+	 * 换算时让滑块中心跟着光标走，所以按住滑块本体拖动不会先跳一下，在轨道别处按下则会跳到指的位置
+	 * （1.19 原版就是这么算的）。
+	 */
+	public static void dragScrollbarTo(DefaultedList<Slot> slots, TCTPlayerScreenHandlerInterface tcp, double mouseY,
+			int guiY) {
+		int length = getTrinketSlotCount(tcp);
+		int maxRow = getMaxScrollRow(length);
+
+		if (maxRow <= 0) {
+			return;
+		}
+
+		int rows = getPanelRows(length);
+		int thumb = getThumbHeight(rows, length);
+		int travel = getGrooveHeight(rows) - thumb;
+
+		if (travel <= 0) {
+			tcp.setScrollIndex(0);
+			updateSlots(slots, tcp);
+			return;
+		}
+
+		double grooveTop = guiY + SCROLLER_TRACK_TOP_HEIGHT;
+		double progress = (mouseY - grooveTop - thumb / 2.0D) / travel;
+		tcp.setScrollIndex(MathHelper.clamp((int) Math.round(progress * maxRow), 0, maxRow));
+
+		updateSlots(slots, tcp);
+	}
+
+	/**
+	 * 面板是否显示页码条/翻页箭头：用的是分页模式，而且确实不止一页。
+	 * 开了滚动条之后这一条恒为 false，两种排版因此不会同时出现。
 	 */
 	public static boolean isPaginationVisible(int length) {
-		return getPageCount(length) > 1;
+		return !isScrollbarMode() && getPageCount(length) > 1;
 	}
 
 	public static final int PAGE_BUTTON_WIDTH = 11;
@@ -460,15 +734,18 @@ public final class ThemeClient {
 		}
 
 		int left = getPanelLeft(columns);
-		int bottom = 7 + rows * 18 + (isPaginationVisible(length) ? PAGE_STRIP_HEIGHT : 0) + 7;
+		int bottom = getPanelHeight(rows, isPaginationVisible(length));
 		return new int[] { left, 0, -1, bottom };
 	}
 
 	/**
-	 * 光标是否在面板上方，也就是滚轮翻页生效的区域。
+	 * 光标是否在面板（或它左侧的滚动条）上方，也就是滚轮生效的区域。
+	 * 滚轮只在面板自己这一块管用：面板之外一律交回原版（从前有个
+	 * {@code scrolling_outside_boundary} 选项可以让它在整个背包里生效，那个功能已经删除）。
 	 */
 	public static boolean isScrolledInTrinkets(TCTPlayerScreenHandlerInterface tcp, double mouseX, double mouseY, int x, int y) {
-		if (ModConfig.scrolling_outside_boundary) {
+		// 滚动条就贴在面板左边，滚轮落在它上面也应该管用，否则会看着像坏了。
+		if (isMouseOverScrollbar(tcp, mouseX, mouseY, x, y)) {
 			return true;
 		}
 

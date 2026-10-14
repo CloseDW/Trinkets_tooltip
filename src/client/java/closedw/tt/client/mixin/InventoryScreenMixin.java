@@ -9,7 +9,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * 主题面板位于原版背包矩形之外，所以面板内的点击不能被当成“点在界面外”
+ * 主题面板位于原版背包矩形之外，所以面板内的点击不能被当成“点在界面外”。
+ * 面板左边那条滚动条同样在原版矩形之外，也要一起算进来。
  */
 @Mixin(InventoryScreen.class)
 public abstract class InventoryScreenMixin {
@@ -20,7 +21,12 @@ public abstract class InventoryScreenMixin {
 			return;
 		}
 
-		if (tcp.getTrinketsShow() && ThemeClient.isMouseOverPanel(tcp, mouseX, mouseY, left, top)) {
+		if (!tcp.getTrinketsShow()) {
+			return;
+		}
+
+		if (ThemeClient.isMouseOverPanel(tcp, mouseX, mouseY, left, top)
+				|| ThemeClient.isMouseOverScrollbar(tcp, mouseX, mouseY, left, top)) {
 			cir.setReturnValue(false);
 		}
 	}

@@ -39,7 +39,8 @@ public abstract class SurvivalTrinketSlotMixin extends Slot implements TCTSurviv
 			if (!(inventoryScreen.getScreenHandler() instanceof TCTPlayerScreenHandlerInterface tcp)) {
 				return false;
 			}
-			// 面板固定分页，所以这里只看「面板开着」和「这个槽位在当前这一页」。
+			// 槽位的显示/隐藏由 ThemeClient 按当前窗口（分页的一页或滚动条的一窗）算好写进来，
+			// 这里只管「面板开着、且这一格在当前窗口里」。
 			return !inventoryScreen.getRecipeBookWidget().isOpen()
 					&& tcp.getTrinketsShow()
 					&& this.trinketsTooltip$enabled;

@@ -33,15 +33,15 @@ public class TrinketsTooltipConfig implements IModConfig {
 
 	/** 这些键对应的 {@code config.<modid>.<key>.tooltip} 翻译是存在的。 */
 	public static final Set<String> TOOLTIP_KEYS = Set.of(
-			"min_width", "max_height", "scrolling_outside_boundary", "jei_slot_lookup");
+			"min_width", "max_height", "jei_slot_lookup", "scrollbar");
 
 	static {
-		// 分页不是选项：面板固定分页，所以这里没有 pagination。
-		CATEGORIES.put("panel", List.of("min_width", "max_height"));
-		CATEGORIES.put("general", List.of("scrolling_outside_boundary", "jei_slot_lookup"));
+		// 分页与滚动条互斥，由 scrollbar 决定用哪一套：面板要么带翻页箭头，要么带左侧滚动条。
+		CATEGORIES.put("panel", List.of("min_width", "max_height", "scrollbar"));
+		CATEGORIES.put("general", List.of("jei_slot_lookup"));
 
-		DEFAULT_VALUES.put("scrolling_outside_boundary", false);
 		DEFAULT_VALUES.put("jei_slot_lookup", true);
+		DEFAULT_VALUES.put("scrollbar", false);
 
 		INT_DEFAULTS.put("max_height", 7);
 		INT_RANGES.put("max_height", new int[] { 2, 7 });
@@ -85,10 +85,10 @@ public class TrinketsTooltipConfig implements IModConfig {
 			return;
 		}
 
-		ModConfig.refresh(this.values.get("scrolling_outside_boundary").get(),
-				this.intValues.get("max_height").get(),
+		ModConfig.refresh(this.intValues.get("max_height").get(),
 				this.intValues.get("min_width").get(),
-				this.values.get("jei_slot_lookup").get());
+				this.values.get("jei_slot_lookup").get(),
+				this.values.get("scrollbar").get());
 		ModConfig.save();
 	}
 
