@@ -45,8 +45,7 @@ Either way the mouse wheel scrolls up to reveal the earlier slots.
 
 ## Credits and license
 
-* Thanks for the inspiration provided by[trinkets-curios-theme](https://github.com/jptrzy/trinkets-curios-theme-mod) by **jptrzy** and [Curios](https://github.com/TheIllusiveC4/Curios) by **C4 (TheIllusiveC4)**,
-* licensed under**LGPL-3.0**.
-* 
+* Thanks for the inspiration provided by[trinkets-curios-theme](https://github.com/jptrzy/trinkets-curios-theme-mod) by **jptrzy** and [Curios](https://github.com/TheIllusiveC4/Curios) by **C4 (TheIllusiveC4)**, licensed under**LGPL-3.0**.
+
 Because this work is derived from an LGPL-3.0 project, the mod as a whole is distributed
 under **LGPL-3.0**. See [LICENSE](LICENSE).
