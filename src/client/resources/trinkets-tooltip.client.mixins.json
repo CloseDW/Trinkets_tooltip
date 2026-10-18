@@ -6,6 +6,8 @@
 		"CreativeTrinketSlotMixin",
 		"HandledScreenMixin",
 		"InventoryScreenMixin",
+		"LivingEntityTrinketComponentMixin",
+		"PlayerEntityRendererMixin",
 		"ScreenHandlerInvoker",
 		"ScreenHandlerMixin",
 		"SurvivalTrinketSlotMixin",

@@ -15,11 +15,14 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.model.EntityModel;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.function.BiConsumer;
 
 /**
  * Curios 的「启用饰品渲染」开关，客户端版本。
@@ -33,7 +36,6 @@ import org.jetbrains.annotations.Nullable;
  * <p>Trinkets 3.7.2 没有任何渲染状态：{@code TrinketFeatureRenderer} 会把每个装了
  * {@code TrinketRenderer} 的物品都画出来。开关的「关」分支因此只能由本模组自己在渲染路径上实现，
  * 见 {@link closedw.tt.client.mixin.TrinketFeatureRendererMixin}。
- *
  * <p>槽位标识用 Trinkets 自己的「组名/槽位名」加槽位序号拼出来（例如 {@code chest/necklace#0}），
  * 这是 {@link SlotType#getGroup()} / {@link SlotType#getName()} 加上
  * {@link SlotReference#index()}，面板侧和渲染侧都能拼出同一个键。
@@ -162,6 +164,68 @@ public final class TrinketRenderToggle {
 					});
 				})
 		);
+	}
+
+	/* 第一人称手臂 */
+
+	/**
+	 * 本地玩家第一人称手臂的渲染深度，以及打开这个窗口的线程。
+	 *
+	 * <p>{@code PlayerEntityRenderer#renderRightArm / renderLeftArm} 就是画第一人称手臂的地方，
+	 * 饰品模组（Artifacts 的手套）在这两个方法的末尾叠自己的模型。这里在那两个方法外面开一个窗口，
+	 * 窗口里 {@link dev.emi.trinkets.api.TrinketComponent} 的遍历把关掉的槽位当成空槽，
+	 * 于是叠在手臂上的饰品自然就画不出来，别的渲染路径完全不受影响。
+	 *
+	 * <p>为什么要记线程：单人游戏里集成服务端和客户端渲染是两个线程，窗口开着的时候服务端线程
+	 * （以及区块构建线程）照样会查饰品组件，那些查询必须看到真实数据，否则关掉渲染会顺带关掉
+	 * 饰品本身的能力，所以窗口只对开它的那个线程生效。
+	 */
+	private static int firstPersonArmDepth;
+	private static Thread firstPersonArmThread;
+
+	/** 开始渲染第一人称手臂。记的是最外层那个窗口的线程，嵌套时不会被里层覆盖。 */
+	public static void beginFirstPersonArm() {
+		if (firstPersonArmDepth == 0) {
+			firstPersonArmThread = Thread.currentThread();
+		}
+
+		firstPersonArmDepth++;
+	}
+
+	/** 结束第一人称手臂渲染。 */
+	public static void endFirstPersonArm() {
+		if (firstPersonArmDepth > 0) {
+			firstPersonArmDepth--;
+		}
+
+		if (firstPersonArmDepth == 0) {
+			firstPersonArmThread = null;
+		}
+	}
+
+	/**
+	 * 这次饰品遍历要不要滤掉关掉的槽位。
+	 *
+	 * <p>只有「当前线程正处在本地玩家的第一人称手臂渲染窗口里，而且确实关掉过槽位」才接管，
+	 * 其余情况一律不碰，遍历完全按 Trinkets 原本的代码走。
+	 */
+	public static boolean shouldFilterFirstPerson(LivingEntity entity) {
+		return firstPersonArmDepth > 0 && Thread.currentThread() == firstPersonArmThread
+				&& entity == MinecraftClient.getInstance().player && !ModConfig.render_disabled_slots.isEmpty();
+	}
+
+	/**
+	 * 把遍历回调包一层，被关掉的槽位在读的时候直接当作不存在。
+	 *
+	 * <p>包住的是 Trinkets 自己的 {@code forEach} 参数，所以 {@code forEach}、{@code getEquipped}、
+	 * {@code getAllEquipped} 会一起被滤掉——饰品模组读的正是最后那个。
+	 */
+	public static BiConsumer<SlotReference, ItemStack> hideDisabledSlots(BiConsumer<SlotReference, ItemStack> consumer) {
+		return (reference, stack) -> {
+			if (isRendered(reference)) {
+				consumer.accept(reference, stack);
+			}
+		};
 	}
 
 	/* ------------------------------------------------------------------ 面板上的图标 */
