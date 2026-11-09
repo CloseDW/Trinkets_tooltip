@@ -13,7 +13,7 @@
   "config.trinkets-tooltip.max_height.tooltip": "Rows per page, or rows shown at once when the scrollbar is on.",
 
   "config.trinkets-tooltip.scrollbar": "Scrollbar",
-  "config.trinkets-tooltip.scrollbar.tooltip": "Replace the page arrows with a Baubles style scrollbar on the left of the panel. The mouse wheel then scrolls one row at a time.",
+  "config.trinkets-tooltip.scrollbar.tooltip": "Replace the page arrows with a scrollbar on the left of the panel.",
 
   "config.trinkets-tooltip.jei_slot_lookup": "JEI Slot Lookup",
   "config.trinkets-tooltip.jei_slot_lookup.tooltip": "Left clicking an empty trinket slot opens JEI listing every item that can be equipped there.",
